@@ -1,7 +1,8 @@
 var cellSize = 40;
 var maxRows = 8;
 var maxCols = 8;
-var numMines = 10;
+var numOfMines = 10;
+var boardArray = [];
 
 // Associative Images array
 var images = {
@@ -57,29 +58,49 @@ function Cell (target_div, y, x) {
     }
 }
 
-function setMessage(msg){
-    var msgEl = document.getElementById("message"); 
-    msgEl.innerHTML = msg;
-}
-
-function createBoard(board){
-    var boardArray = [];
-    var parentEl = document.getElementById("container");
-    for (let i = 0; i < board.boardHeight; i++){
-        boardArray[i] = [];
-        for (let j = 0; j < board.boardWidth; j++){
-            boardArray[i][j] = new Cell(parentEl, i, j);       
-        }
-    }
-}
-
 function setWidth(){
     var containerEl = document.getElementById("container");
     containerEl.style.width = cellSize*maxCols + maxCols*2 + "px";
 }
 
+function setMessage(msg){
+    var msgEl = document.getElementById("message"); 
+    msgEl.innerHTML = msg;
+}
+
+function placeMines (board){
+    var numOfBombs = board.numOfMines;
+    while(numOfBombs > 0){
+        var randomNumber = Math.round(Math.random()* ((board.boardHeight * board.boardWidth) - 1));
+        // Quotient of randomNumber/boardWidth will give the row
+        var rowCount= Math.floor(randomNumber / board.boardWidth);
+        // Remainder of randomNumber % boardWidth wil give the column
+        var columnCount = randomNumber % board.boardWidth;
+        if(!boardArray[rowCount][columnCount].isMine){
+            boardArray[rowCount][columnCount].isMine = true;
+            boardArray[rowCount][columnCount].img.src = images.bomb;
+            numOfBombs--;
+        }
+    }
+}
+
+function createBoard(board){
+    var parentEl = document.getElementById("container");
+    for (let i = 0; i < board.boardHeight; i++){
+        boardArray[i] = [];
+        for (let j = 0; j < board.boardWidth; j++){
+            boardArray[i][j] = new Cell(parentEl, i, j);    
+            boardArray[i][j].xPos = j;
+            boardArray[i][j].yPos = i;
+        }
+    }
+}
+
+
+
 window.onload = function() {
-    var board = new Board(maxCols,maxRows,numMines); 
+    var board = new Board(maxCols,maxRows,numOfMines); 
     setWidth(board.boardWidth);
     createBoard(board);  
+    placeMines(board);
 };
