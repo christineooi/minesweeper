@@ -7,8 +7,33 @@ header {
     text-align: center;
 }
 
+#message {
+    text-align: center;
+    height: 40px;
+    color: navy;
+    font-weight: bold;
+}
+
 #container {
+    display: flex;
+    flex-flow: row wrap;
     margin-top: 40px;
     margin:0 auto;
     text-align: center;
 }
+
+.cell {
+    border: 1px solid slategray;
+    width: 40px;
+    height: 40px;
+}
+
+.bomb {
+
+}
+
+.flag {
+
+}
+
+
