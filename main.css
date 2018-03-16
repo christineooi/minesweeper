@@ -19,7 +19,7 @@ header {
     flex-flow: row wrap;
     margin-top: 40px;
     margin:0 auto;
-    text-align: center;
+    /* text-align: center; */
 }
 
 .cell {
