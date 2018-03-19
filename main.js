@@ -77,8 +77,7 @@ function Board (width, height, mines) {
     this.boardHeight =  height;
     this.numOfMines = mines;
     this.boardArray = [];
-    this.isGameOver = false;
-    
+    this.isGameOver = false;    
 }
 
 // Constructor of each square on the board
@@ -102,7 +101,8 @@ console.log("this.isMine" + this.isMine);
         if (this.isMine){
             this.src = images.explodingBomb;
         } else {
-            this.src = images.clickedEmpty;
+            handleClick();
+            // this.src = images.clickedEmpty;
         }
       });
 
@@ -112,16 +112,23 @@ console.log("this.isMine" + this.isMine);
         if (this.isFlagged){
             this.isFlagged = false;
             this.src = images.unclicked;
-            // this.parent.numOfMines.innerHTML = this.parent.numOfMines + 1;
+            // update number of mines
         } else {
             this.isFlagged = true;
             this.src = images.flagged;
-            // this.parent.numOfMines.innerHTML = this.parent.numOfMines - 1;
+            // update number of mines
         }  
         
       });
 }
 
+function handleClick(){
+    if (!this.isFlagged && !this.isClicked){
+        this.isClicked = true;
+        this.src = images.clickedEmpty;
+        // this.img.removeEventListener("click",function);
+    }
+}
 
 function setWidth(){
     var containerEl = document.getElementById("container");
@@ -133,13 +140,103 @@ function setMessage(msg){
     msgEl.innerHTML = msg;
 }
 
+// function getNeighbors(board){
+//     var neighborsArray = [];
+//     var topleft = board.boardArray[board.boardArray.yPos-1][board.boardArray.xPos-1];
+//     var topmiddle = board.boardArray[board.boardArray.yPos-1][board.boardArray.xPos];
+//     var topright = board.boardArray[board.boardArray.yPos-1][board.boardArray.xPos+1];
+//     var middleleft = board.boardArray[board.boardArray.yPos][board.boardArray.xPos-1];
+//     var middleright = board.boardArray[board.boardArray.yPos][board.boardArray.xPos+1];
+//     var bottomleft = board.boardArray[board.boardArray.yPos+1][board.boardArray.xPos-1];
+//     var bottommiddle = board.boardArray[board.boardArray.yPos+1][board.boardArray.xPos];
+//     var bottomright = board.boardArray[board.boardArray.yPos+1][board.boardArray.xPos+1];
+//     if (cell.yPos === 0){
+//         if (cell.xPos === 0){  // Upper left corner - 3 neighbors
+//             neighborsArray.push(middleright, bottomright, bottommiddle);
+//         } else if (cell.xPos === (board.boardWidth - 1)){ // upper right corner - 3 neighbors
+//             neighborsArray.push(middleleft, bottomleft, bottommiddle);
+//         } else { // first row middle - 5 neighbors
+//             neighborsArray.push(middleleft, bottomleft, bottommiddle, bottomright, middleright);
+//         }
+//     } else if (cell.yPos === (board.boardHeight - 1)){
+//         if (cell.xPos === 0){ // bottom left corner - 3 neighbors
+//             neighborsArray.push(topmiddle, topright, middleright);
+//         } else if (cell.xPos === (board.boardWidth - 1)){ //bottom right corner - 3 neighbors
+//             neighborsArray.push(middleleft, topleft, topmiddle);
+//         } else { // last row middle - 5 neighbors
+//             neighborsArray.push(middleleft, topleft, topmiddle, topright, middleright);
+//         }
+//     } else {
+//         if (cell.xPos === 0){ // left most column - 5 neighbors
+//             neighborsArray.push(topmiddle, topright, middleright, bottomright, bottommiddle);
+//         } else if (cell.xPos === (board.boardWidth - 1)){ // right most column - 5 neighbors
+//             neighborsArray.push(topmiddle, topleft, middleleft, bottomleft, bottommiddle);
+//         } else { // non-edge cells - 8 neighbors
+//             neighborsArray.push(topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright);
+//         }
+//     }
+//     return neighborsArray;
+// }
+
+function setImageSrc(board,value){
+    switch (value){
+        case 0: 
+            board.boardArray.img.src = images.clickedEmpty;
+            break;
+        case 1:
+            board.boardArray.img.src = images.value1;
+            break;
+        case 2:
+            board.boardArray.img.src = images.value2;
+            break;
+        case 3:
+            board.boardArray.img.src = images.value3;
+            break;
+        case 4:
+            board.boardArray.img.src = images.value4;
+            break;
+        case 5:
+            board.boardArray.img.src = images.value5;
+            break;
+        case 6:
+            board.boardArray.img.src = images.value6;
+            break;
+        case 7:
+            board.boardArray.img.src = images.value7;
+            break;
+        case 8:
+            board.boardArray.img.src = images.value8;
+            break;
+    }
+}
+
+// function placeNumbers(board){
+//     var cellVal = 0;
+//     for (var y=0; y<board.boardHeight; y++){
+//         for (var x=0; x<board.boardWidth; x++){
+//             var neighborsArray = getNeighbors(board);
+//             cellVal = 0;
+//             for (var n=0; n<neighborsArray.length; n++){
+//                 if (neighborsArray[n].isMine){
+//                     cellVal++;
+//                 }
+//                 setImageSrc(board,cellVal);
+//                 board.boardArray.cellValue = cellVal;
+//                 if (cellVal === 0 || board.boardArray.isMine){
+//                     board.boardArray.img.src = images.unclicked;
+//                 }
+//             } 
+//         }
+//     }
+// }
+
 function placeMines (board){
     var numOfBombs = board.numOfMines;
     while(numOfBombs > 0){
         var randomNumber = Math.round(Math.random()* ((board.boardHeight * board.boardWidth) - 1));
-        // Quotient of randomNumber/boardWidth will give the row
+        // Quotient will give the row
         var rowCount= Math.floor(randomNumber / board.boardWidth);
-        // Remainder of randomNumber % boardWidth wil give the column
+        // Remainder wil give the column
         var columnCount = randomNumber % board.boardWidth;
         if(!board.boardArray[rowCount][columnCount].isMine){
             board.boardArray[rowCount][columnCount].isMine = true;
@@ -152,9 +249,11 @@ function placeMines (board){
 function createBoard(board){
     var parentEl = document.getElementById("container");
     for (let i = 0; i < board.boardHeight; i++){
-        board.boardArray[i] = [];
+        var rowOfCells = [];
+        board.boardArray[i] = rowOfCells;
         for (let j = 0; j < board.boardWidth; j++){
-            board.boardArray[i][j] = new Cell(parentEl, i, j);    
+            // var cell = new Cell(parentEl, i, j); 
+            board.boardArray[i][j] = new Cell(parentEl, i, j);  
             board.boardArray[i][j].xPos = j;
             board.boardArray[i][j].yPos = i;
         }
@@ -188,4 +287,5 @@ window.onload = function() {
     createPanel();
     createBoard(board);  
     placeMines(board);
+    // placeNumbers(board);
 };
