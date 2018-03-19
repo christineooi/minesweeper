@@ -76,6 +76,7 @@ function Board (width, height, mines) {
     this.boardWidth = width;
     this.boardHeight =  height;
     this.numOfMines = mines;
+    this.minesLeft = mines;
     this.boardArray = [];
     this.isGameOver = false;    
 }
@@ -92,43 +93,43 @@ function Cell (target_div, y, x) {
     this.img.src = images.unclicked;
     this.img.className = "cell";
     target_div.appendChild(this.img);
-    
-    this.img.addEventListener("click", function (event) {
-        setMessage("cell clicked!");
-console.log("this.yPos: " + this.yPos);
-console.log("this.xPos: " + this.xPos);
-console.log("this.isMine" + this.isMine);
+    this.img.addEventListener("click", (event) => {
         if (this.isMine){
-            this.src = images.explodingBomb;
+            event.target.src = images.explodingBomb;
+            setMessage("Game Over!");
         } else {
-            handleClick();
-            // this.src = images.clickedEmpty;
+            if (!this.isFlagged && !this.isClicked){
+                this.isClicked = true;
+                if (this.cellValue > 0){
+                    setImageSrc(this, this.cellValue);
+                } else {
+                    event.target.src = images.clickedEmpty;
+                }
+            }
         }
       });
 
-    this.img.addEventListener("contextmenu", function (event) {
-        event.preventDefault(); 
-        setMessage("cell right-clicked!");
+    this.img.addEventListener("contextmenu", (event) => {        
         if (this.isFlagged){
             this.isFlagged = false;
-            this.src = images.unclicked;
-            // update number of mines
+            event.target.src = images.unclicked;
+            // parseInt(document.getElementById("minesDiv").innerHTML) -= 1;
         } else {
             this.isFlagged = true;
-            this.src = images.flagged;
-            // update number of mines
+            event.target.src = images.flagged;
+            // parseInt(document.getElementById("minesDiv").innerHTML) += 1;
         }  
-        
+        event.preventDefault(); 
       });
 }
 
-function handleClick(){
-    if (!this.isFlagged && !this.isClicked){
-        this.isClicked = true;
-        this.src = images.clickedEmpty;
-        // this.img.removeEventListener("click",function);
-    }
-}
+// function handleClick(event){
+//     if (!this.isFlagged && !this.isClicked){
+//         this.isClicked = true;
+//         this.img.src = images.clickedEmpty;
+//         // this.img.removeEventListener("click",function);
+//     }
+// }
 
 function setWidth(){
     var containerEl = document.getElementById("container");
@@ -140,97 +141,116 @@ function setMessage(msg){
     msgEl.innerHTML = msg;
 }
 
-// function getNeighbors(board){
-//     var neighborsArray = [];
-//     var topleft = board.boardArray[board.boardArray.yPos-1][board.boardArray.xPos-1];
-//     var topmiddle = board.boardArray[board.boardArray.yPos-1][board.boardArray.xPos];
-//     var topright = board.boardArray[board.boardArray.yPos-1][board.boardArray.xPos+1];
-//     var middleleft = board.boardArray[board.boardArray.yPos][board.boardArray.xPos-1];
-//     var middleright = board.boardArray[board.boardArray.yPos][board.boardArray.xPos+1];
-//     var bottomleft = board.boardArray[board.boardArray.yPos+1][board.boardArray.xPos-1];
-//     var bottommiddle = board.boardArray[board.boardArray.yPos+1][board.boardArray.xPos];
-//     var bottomright = board.boardArray[board.boardArray.yPos+1][board.boardArray.xPos+1];
-//     if (cell.yPos === 0){
-//         if (cell.xPos === 0){  // Upper left corner - 3 neighbors
-//             neighborsArray.push(middleright, bottomright, bottommiddle);
-//         } else if (cell.xPos === (board.boardWidth - 1)){ // upper right corner - 3 neighbors
-//             neighborsArray.push(middleleft, bottomleft, bottommiddle);
-//         } else { // first row middle - 5 neighbors
-//             neighborsArray.push(middleleft, bottomleft, bottommiddle, bottomright, middleright);
-//         }
-//     } else if (cell.yPos === (board.boardHeight - 1)){
-//         if (cell.xPos === 0){ // bottom left corner - 3 neighbors
-//             neighborsArray.push(topmiddle, topright, middleright);
-//         } else if (cell.xPos === (board.boardWidth - 1)){ //bottom right corner - 3 neighbors
-//             neighborsArray.push(middleleft, topleft, topmiddle);
-//         } else { // last row middle - 5 neighbors
-//             neighborsArray.push(middleleft, topleft, topmiddle, topright, middleright);
-//         }
-//     } else {
-//         if (cell.xPos === 0){ // left most column - 5 neighbors
-//             neighborsArray.push(topmiddle, topright, middleright, bottomright, bottommiddle);
-//         } else if (cell.xPos === (board.boardWidth - 1)){ // right most column - 5 neighbors
-//             neighborsArray.push(topmiddle, topleft, middleleft, bottomleft, bottommiddle);
-//         } else { // non-edge cells - 8 neighbors
-//             neighborsArray.push(topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright);
-//         }
-//     }
-//     return neighborsArray;
-// }
+function getNeighbors(board, cell){
+    var neighborsArray = [];
+    // var topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright;
+    // if (cell.yPos !== 0 && cell.xPos !== 0) {
+    //     topleft = board.boardArray[cell.yPos-1][cell.xPos-1];
+    // }
+    // if (cell.yPos !== 0){
+    //     topmiddle = board.boardArray[cell.yPos-1][cell.xPos];
+    //     topright = board.boardArray[cell.yPos-1][cell.xPos+1];
+    // }
+    // if (cell.xPos !== 0){
+    //     middleleft = board.boardArray[cell.yPos][cell.xPos-1];
+    //     bottomleft = board.boardArray[cell.yPos+1][cell.xPos-1];
+    // }
+    // middleright = board.boardArray[cell.yPos][cell.xPos+1];
+    // if (cell.yPos < board.boardHeight){
+    //     bottommiddle = board.boardArray[cell.yPos+1][cell.xPos];
+    //     bottomright = board.boardArray[cell.yPos+1][cell.xPos+1];
+    // }
+    if (cell.yPos === 0){
+        if (cell.xPos === 0){  // Upper left corner - 3 neighbors
+            // neighborsArray.push(middleright, bottomright, bottommiddle);
+            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos+1],board.boardArray[cell.yPos+1][cell.xPos]);
+        } else if (cell.xPos === (board.boardWidth - 1)){ // upper right corner - 3 neighbors
+            // neighborsArray.push(middleleft, bottomleft, bottommiddle);
+            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos]);
+        } else { // first row middle - 5 neighbors
+            // neighborsArray.push(middleleft, bottomleft, bottommiddle, bottomright, middleright);
+            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
+        }
+    } else if (cell.yPos === (board.boardHeight - 1)){
+        if (cell.xPos === 0){ // bottom left corner - 3 neighbors
+            // neighborsArray.push(topmiddle, topright, middleright);
+            neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
+        } else if (cell.xPos === (board.boardWidth - 1)){ //bottom right corner - 3 neighbors
+            // neighborsArray.push(middleleft, topleft, topmiddle);
+            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos]);
+        } else { // last row middle - 5 neighbors
+            // neighborsArray.push(middleleft, topleft, topmiddle, topright, middleright);
+            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
+        }
+    } else {
+        if (cell.xPos === 0){ // left most column - 5 neighbors
+            // neighborsArray.push(topmiddle, topright, middleright, bottomright, bottommiddle);
+            neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos]);
+        } else if (cell.xPos === (board.boardWidth - 1)){ // right most column - 5 neighbors
+            // neighborsArray.push(topmiddle, topleft, middleleft, bottomleft, bottommiddle);
+            neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos]);
+        } else { // non-edge cells - 8 neighbors
+            // neighborsArray.push(topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright);
+            neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos+1]);
+        }
+    }
+    return neighborsArray;
+}
 
-function setImageSrc(board,value){
+function setImageSrc(cell,value){
     switch (value){
         case 0: 
-            board.boardArray.img.src = images.clickedEmpty;
+            cell.img.src = images.clickedEmpty;
             break;
         case 1:
-            board.boardArray.img.src = images.value1;
+            cell.img.src = images.value1;
             break;
         case 2:
-            board.boardArray.img.src = images.value2;
+            cell.img.src = images.value2;
             break;
         case 3:
-            board.boardArray.img.src = images.value3;
+            cell.img.src = images.value3;
             break;
         case 4:
-            board.boardArray.img.src = images.value4;
+            cell.img.src = images.value4;
             break;
         case 5:
-            board.boardArray.img.src = images.value5;
+            cell.img.src = images.value5;
             break;
         case 6:
-            board.boardArray.img.src = images.value6;
+            cell.img.src = images.value6;
             break;
         case 7:
-            board.boardArray.img.src = images.value7;
+            cell.img.src = images.value7;
             break;
         case 8:
-            board.boardArray.img.src = images.value8;
+            cell.img.src = images.value8;
             break;
     }
 }
 
-// function placeNumbers(board){
-//     var cellVal = 0;
-//     for (var y=0; y<board.boardHeight; y++){
-//         for (var x=0; x<board.boardWidth; x++){
-//             var neighborsArray = getNeighbors(board);
-//             cellVal = 0;
-//             for (var n=0; n<neighborsArray.length; n++){
-//                 if (neighborsArray[n].isMine){
-//                     cellVal++;
-//                 }
-//                 setImageSrc(board,cellVal);
-//                 board.boardArray.cellValue = cellVal;
-//                 if (cellVal === 0 || board.boardArray.isMine){
-//                     board.boardArray.img.src = images.unclicked;
-//                 }
-//             } 
-//         }
-//     }
-// }
 
-function placeMines (board){
+Board.prototype.placeNumbers = function (board){
+    var cellVal = 0;
+    for (var y=0; y<board.boardHeight; y++){
+        for (var x=0; x<board.boardWidth; x++){
+            var neighborsArray = getNeighbors(board, board.boardArray[y][x]);
+            cellVal = 0;
+            for (var n=0; n<neighborsArray.length; n++){
+                if (neighborsArray[n].isMine){
+                    cellVal++;
+                }
+                // setImageSrc(board.boardArray[y][x],cellVal);
+                board.boardArray[y][x].cellValue = cellVal;
+                if (cellVal === 0 || board.boardArray[y][x].isMine){
+                    board.boardArray[y][x].img.src = images.unclicked;
+                }
+            } 
+        }
+    }
+}
+
+Board.prototype.placeMines = function (board){
     var numOfBombs = board.numOfMines;
     while(numOfBombs > 0){
         var randomNumber = Math.round(Math.random()* ((board.boardHeight * board.boardWidth) - 1));
@@ -240,19 +260,18 @@ function placeMines (board){
         var columnCount = randomNumber % board.boardWidth;
         if(!board.boardArray[rowCount][columnCount].isMine){
             board.boardArray[rowCount][columnCount].isMine = true;
-            board.boardArray[rowCount][columnCount].img.src = images.bomb;
+            // board.boardArray[rowCount][columnCount].img.src = images.bomb;
             numOfBombs--;
         }
     }
 }
 
-function createBoard(board){
+Board.prototype.createBoard = function (board){
     var parentEl = document.getElementById("container");
     for (let i = 0; i < board.boardHeight; i++){
         var rowOfCells = [];
         board.boardArray[i] = rowOfCells;
-        for (let j = 0; j < board.boardWidth; j++){
-            // var cell = new Cell(parentEl, i, j); 
+        for (let j = 0; j < board.boardWidth; j++){ 
             board.boardArray[i][j] = new Cell(parentEl, i, j);  
             board.boardArray[i][j].xPos = j;
             board.boardArray[i][j].yPos = i;
@@ -266,6 +285,7 @@ function createPanel(){
     panelDiv.setAttribute("id","panelDiv");
     panelDiv.style.width = parentEl.style.width;
     var minesDiv = document.createElement("div");
+    minesDiv.setAttribute("id", "minesDiv");
     minesDiv.innerHTML = getThreeDigits(numOfMines);
     minesDiv.style.color = "red";
     minesDiv.style.fontFamily = "tahoma";
@@ -285,7 +305,7 @@ window.onload = function() {
     var board = new Board(maxCols,maxRows,numOfMines); 
     setWidth(board.boardWidth);
     createPanel();
-    createBoard(board);  
-    placeMines(board);
-    // placeNumbers(board);
+    board.createBoard(board);  
+    board.placeMines(board);
+    board.placeNumbers(board);
 };
