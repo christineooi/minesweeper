@@ -103,6 +103,7 @@ function Cell (board, target_div, y, x) {
             if (!this.isFlagged){
                 event.target.src = images.explodingBomb;
                 setMessage("Game Over!");
+                showMines(board, this);
             }  
         } else {
             if (!this.isFlagged && !this.isClicked){
@@ -141,6 +142,16 @@ function Cell (board, target_div, y, x) {
 //         // this.img.removeEventListener("click",function);
 //     }
 // }
+function showMines(board, cell){
+    for (let y=0; y<board.boardHeight; y++){
+        for (let x=0; x<board.boardWidth; x++){
+            if (board.boardArray[y][x].isMine && board.boardArray[y][x] !== cell){
+                board.boardArray[y][x].img.src = images.bomb;
+            }
+        }
+    }
+}
+
 function openNeighbors (board, cell){
     var neighbors = getNeighbors(board, cell);
     for (var i=0; i<neighbors.length; i++){
