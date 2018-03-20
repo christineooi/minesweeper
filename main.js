@@ -43,7 +43,12 @@ var images = {
 // }
 // add zero in front of numbers < 100
 function getThreeDigits(i) {
-    if (i < 100) {i = "0" + i};  
+    if (i < 10){
+        i = "00" + i;
+    }
+    else if (i < 100) {
+        i = "0" + i;
+    }
     return i;
 }
 
@@ -82,7 +87,7 @@ function Board (width, height, mines) {
 }
 
 // Constructor of each square on the board
-function Cell (target_div, y, x) {
+function Cell (board, target_div, y, x) {
     this.isMine = false;
     this.isClicked = false;
     this.isFlagged = false;
@@ -95,8 +100,10 @@ function Cell (target_div, y, x) {
     target_div.appendChild(this.img);
     this.img.addEventListener("click", (event) => {
         if (this.isMine){
-            event.target.src = images.explodingBomb;
-            setMessage("Game Over!");
+            if (!this.isFlagged){
+                event.target.src = images.explodingBomb;
+                setMessage("Game Over!");
+            }  
         } else {
             if (!this.isFlagged && !this.isClicked){
                 this.isClicked = true;
@@ -105,21 +112,25 @@ function Cell (target_div, y, x) {
                 } else {
                     event.target.src = images.clickedEmpty;
                 }
+                if(this.cellValue == 0){ 
+                    openNeighbors(board, this); 
+                }
             }
         }
       });
 
-    this.img.addEventListener("contextmenu", (event) => {        
+    this.img.addEventListener("contextmenu", (event) => {            
         if (this.isFlagged){
             this.isFlagged = false;
             event.target.src = images.unclicked;
-            // parseInt(document.getElementById("minesDiv").innerHTML) -= 1;
+            document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) + 1)).toString();
         } else {
             this.isFlagged = true;
             event.target.src = images.flagged;
-            // parseInt(document.getElementById("minesDiv").innerHTML) += 1;
+            document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) - 1)).toString();
         }  
-        event.preventDefault(); 
+        event.preventDefault();  
+
       });
 }
 
@@ -130,6 +141,24 @@ function Cell (target_div, y, x) {
 //         // this.img.removeEventListener("click",function);
 //     }
 // }
+function openNeighbors (board, cell){
+    var neighbors = getNeighbors(board, cell);
+    for (var i=0; i<neighbors.length; i++){
+        if (!neighbors[i].isClicked){
+            if (!neighbors[i].isFlagged && !neighbors[i].isClicked){
+                neighbors[i].isClicked = true;
+                if (neighbors[i].cellValue > 0){
+                    setImageSrc(neighbors[i], neighbors[i].cellValue);
+                } else {
+                    neighbors[i].img.src = images.clickedEmpty;
+                }
+                if(neighbors[i].cellValue == 0){ 
+                    openNeighbors(board, neighbors[i]); 
+                }
+            }
+        }
+    }
+}
 
 function setWidth(){
     var containerEl = document.getElementById("container");
@@ -143,23 +172,6 @@ function setMessage(msg){
 
 function getNeighbors(board, cell){
     var neighborsArray = [];
-    // var topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright;
-    // if (cell.yPos !== 0 && cell.xPos !== 0) {
-    //     topleft = board.boardArray[cell.yPos-1][cell.xPos-1];
-    // }
-    // if (cell.yPos !== 0){
-    //     topmiddle = board.boardArray[cell.yPos-1][cell.xPos];
-    //     topright = board.boardArray[cell.yPos-1][cell.xPos+1];
-    // }
-    // if (cell.xPos !== 0){
-    //     middleleft = board.boardArray[cell.yPos][cell.xPos-1];
-    //     bottomleft = board.boardArray[cell.yPos+1][cell.xPos-1];
-    // }
-    // middleright = board.boardArray[cell.yPos][cell.xPos+1];
-    // if (cell.yPos < board.boardHeight){
-    //     bottommiddle = board.boardArray[cell.yPos+1][cell.xPos];
-    //     bottomright = board.boardArray[cell.yPos+1][cell.xPos+1];
-    // }
     if (cell.yPos === 0){
         if (cell.xPos === 0){  // Upper left corner - 3 neighbors
             // neighborsArray.push(middleright, bottomright, bottommiddle);
@@ -272,7 +284,7 @@ Board.prototype.createBoard = function (board){
         var rowOfCells = [];
         board.boardArray[i] = rowOfCells;
         for (let j = 0; j < board.boardWidth; j++){ 
-            board.boardArray[i][j] = new Cell(parentEl, i, j);  
+            board.boardArray[i][j] = new Cell(board, parentEl, i, j);  
             board.boardArray[i][j].xPos = j;
             board.boardArray[i][j].yPos = i;
         }
