@@ -81,8 +81,9 @@ function Board (width, height, mines) {
     this.boardWidth = width;
     this.boardHeight =  height;
     this.numOfMines = mines;
-    this.minesLeft = mines;
+    this.nonMineCells = (width*height)-numOfMines;
     this.boardArray = [];
+    this.nonMineCellsClicked = 0;
     this.isGameOver = false;    
 }
 
@@ -99,49 +100,61 @@ function Cell (board, target_div, y, x) {
     this.img.className = "cell";
     target_div.appendChild(this.img);
     this.img.addEventListener("click", (event) => {
-        if (this.isMine){
-            if (!this.isFlagged){
+        if (!board.isGameOver){
+            if (this.isMine && !this.isFlagged){
                 event.target.src = images.explodingBomb;
                 setMessage("Game Over!");
                 showMines(board, this);
-            }  
-        } else {
-            if (!this.isFlagged && !this.isClicked){
-                this.isClicked = true;
-                if (this.cellValue > 0){
-                    setImageSrc(this, this.cellValue);
-                } else {
-                    event.target.src = images.clickedEmpty;
-                }
-                if(this.cellValue == 0){ 
-                    openNeighbors(board, this); 
-                }
+                board.isGameOver = "true"; 
+            } else if(!this.isMine){
+                handleClick(board,this);
             }
         }
-      });
-
-    this.img.addEventListener("contextmenu", (event) => {            
-        if (this.isFlagged){
-            this.isFlagged = false;
-            event.target.src = images.unclicked;
-            document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) + 1)).toString();
-        } else {
-            this.isFlagged = true;
-            event.target.src = images.flagged;
-            document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) - 1)).toString();
-        }  
-        event.preventDefault();  
-
-      });
+    });
+    this.img.addEventListener("contextmenu", (event) => {       
+        if (!isGameOver){         
+            if (this.isFlagged){
+                this.isFlagged = false;
+                event.target.src = images.unclicked;
+                document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) + 1)).toString();
+            } else {
+                this.isFlagged = true;
+                event.target.src = images.flagged;
+                document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) - 1)).toString();
+            }  
+        }
+        event.preventDefault(); 
+    });
 }
 
-// function handleClick(event){
-//     if (!this.isFlagged && !this.isClicked){
-//         this.isClicked = true;
-//         this.img.src = images.clickedEmpty;
-//         // this.img.removeEventListener("click",function);
-//     }
-// }
+function handleClick(board, cell){
+    cell.isClicked = true;
+    board.nonMineCellsClicked++;
+    if (cell.cellValue > 0){
+        setImageSrc(cell, cell.cellValue);
+    } else {
+        cell.img.src = images.clickedEmpty;
+    }
+    if(cell.cellValue == 0){ 
+        openNeighbors(board, cell); 
+    }
+    if (board.nonMineCellsClicked === board.nonMineCells){
+        setMessage("You WIN the game!");
+        board.isGameOver = true;
+    } 
+
+}
+
+function showNonFlaggedMines(board){
+    for (let y=0; y<board.boardHeight; y++){
+        for (let x=0; x<board.boardWidth; x++){
+            if (board.boardArray[y][x].isMine && !board.boardArray[y][x].isFlagged){
+                board.boardArray[y][x].img.src = images.bomb;
+            }
+        }
+    }
+}
+
 function showMines(board, cell){
     for (let y=0; y<board.boardHeight; y++){
         for (let x=0; x<board.boardWidth; x++){
@@ -156,17 +169,7 @@ function openNeighbors (board, cell){
     var neighbors = getNeighbors(board, cell);
     for (var i=0; i<neighbors.length; i++){
         if (!neighbors[i].isClicked){
-            if (!neighbors[i].isFlagged && !neighbors[i].isClicked){
-                neighbors[i].isClicked = true;
-                if (neighbors[i].cellValue > 0){
-                    setImageSrc(neighbors[i], neighbors[i].cellValue);
-                } else {
-                    neighbors[i].img.src = images.clickedEmpty;
-                }
-                if(neighbors[i].cellValue == 0){ 
-                    openNeighbors(board, neighbors[i]); 
-                }
-            }
+            handleClick(board, neighbors[i]);
         }
     }
 }
@@ -283,7 +286,6 @@ Board.prototype.placeMines = function (board){
         var columnCount = randomNumber % board.boardWidth;
         if(!board.boardArray[rowCount][columnCount].isMine){
             board.boardArray[rowCount][columnCount].isMine = true;
-            // board.boardArray[rowCount][columnCount].img.src = images.bomb;
             numOfBombs--;
         }
     }
