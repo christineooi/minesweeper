@@ -112,7 +112,7 @@ function Cell (board, target_div, y, x) {
         }
     });
     this.img.addEventListener("contextmenu", (event) => {       
-        if (!isGameOver){         
+        if (!board.isGameOver){         
             if (this.isFlagged){
                 this.isFlagged = false;
                 event.target.src = images.unclicked;
@@ -266,7 +266,6 @@ Board.prototype.placeNumbers = function (board){
                 if (neighborsArray[n].isMine){
                     cellVal++;
                 }
-                // setImageSrc(board.boardArray[y][x],cellVal);
                 board.boardArray[y][x].cellValue = cellVal;
                 if (cellVal === 0 || board.boardArray[y][x].isMine){
                     board.boardArray[y][x].img.src = images.unclicked;
