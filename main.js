@@ -21,15 +21,7 @@ var images = {
     value8: "value8.png",
 }
 
-// Game constructor
-// function Game () {
-//     startTimer = function(){
 
-//     }
-//     stopTimer = function(){
-
-//     }
-// }
 // var prevTime, stopwatchInterval, elapsedTime = 0;
 
 // function startTimer() {
@@ -87,8 +79,42 @@ function Board (width, height, mines) {
     this.isGameOver = false;    
 }
 
+// Panel constructor
+function Panel (minesleft) {
+    this.numMinesLeft = minesleft; 
+    this.isTimerOn = false;
+    this.timerID;
+    this.elapsedTime = 0;
+    this.restartButton;
+    // this.restartButton.addEventListener("click", function(event){
+    //     setMessage("Restart button clicked!");
+    //     
+
+    // });
+
+}
+
+Panel.prototype.countUp = function(){
+    var formattedTime = getThreeDigits(this.elapsedTime);
+    document.getElementById("timerDiv").innerHTML = formattedTime;
+    this.elapsedTime = this.elapsedTime + 1;
+    this.timerID = setTimeout(countUp, 1000);
+}
+
+Panel.prototype.startTimer = function (){
+    if (!isTimerOn){
+        isTimerOn = true;
+        countUp();
+    }
+}
+
+Panel.prototype.stopTimer = function (){
+    clearTimeout(timerID);
+    isTimerOn = false;
+}
+
 // Constructor of each square on the board
-function Cell (board, target_div, y, x) {
+function Cell (board, panel, target_div, y, x) {
     this.isMine = false;
     this.isClicked = false;
     this.isFlagged = false;
@@ -101,10 +127,14 @@ function Cell (board, target_div, y, x) {
     target_div.appendChild(this.img);
     this.img.addEventListener("click", (event) => {
         if (!board.isGameOver){
+            // if (!panel.isTimerOn){
+            //     panel.startTimer();
+            // }
             if (this.isMine && !this.isFlagged){
                 event.target.src = images.explodingBomb;
                 setMessage("Game Over!");
                 showMines(board, this);
+                // panel.stopTimer();
                 board.isGameOver = "true"; 
             } else if(!this.isMine){
                 handleClick(board,this);
@@ -192,7 +222,7 @@ function getNeighbors(board, cell){
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos+1],board.boardArray[cell.yPos+1][cell.xPos]);
         } else if (cell.xPos === (board.boardWidth - 1)){ // upper right corner - 3 neighbors
             // neighborsArray.push(middleleft, bottomleft, bottommiddle);
-            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos]);
+            neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos]);
         } else { // first row middle - 5 neighbors
             // neighborsArray.push(middleleft, bottomleft, bottommiddle, bottomright, middleright);
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
@@ -256,54 +286,56 @@ function setImageSrc(cell,value){
 }
 
 
-Board.prototype.placeNumbers = function (board){
+Board.prototype.placeNumbers = function (){
     var cellVal = 0;
-    for (var y=0; y<board.boardHeight; y++){
-        for (var x=0; x<board.boardWidth; x++){
-            var neighborsArray = getNeighbors(board, board.boardArray[y][x]);
+    for (var y=0; y<this.boardHeight; y++){
+        for (var x=0; x<this.boardWidth; x++){
+            var neighborsArray = getNeighbors(this, this.boardArray[y][x]);
             cellVal = 0;
             for (var n=0; n<neighborsArray.length; n++){
                 if (neighborsArray[n].isMine){
                     cellVal++;
                 }
-                board.boardArray[y][x].cellValue = cellVal;
-                if (cellVal === 0 || board.boardArray[y][x].isMine){
-                    board.boardArray[y][x].img.src = images.unclicked;
+                this.boardArray[y][x].cellValue = cellVal;
+                if (cellVal === 0 || this.boardArray[y][x].isMine){
+                    this.boardArray[y][x].img.src = images.unclicked;
                 }
             } 
         }
     }
 }
 
-Board.prototype.placeMines = function (board){
-    var numOfBombs = board.numOfMines;
+Board.prototype.placeMines = function (){
+    var numOfBombs = this.numOfMines;
     while(numOfBombs > 0){
-        var randomNumber = Math.round(Math.random()* ((board.boardHeight * board.boardWidth) - 1));
+        var randomNumber = Math.round(Math.random()* ((this.boardHeight * this.boardWidth) - 1));
         // Quotient will give the row
-        var rowCount= Math.floor(randomNumber / board.boardWidth);
+        var rowCount= Math.floor(randomNumber / this.boardWidth);
         // Remainder wil give the column
-        var columnCount = randomNumber % board.boardWidth;
-        if(!board.boardArray[rowCount][columnCount].isMine){
-            board.boardArray[rowCount][columnCount].isMine = true;
+        var columnCount = randomNumber % this.boardWidth;
+        if(!this.boardArray[rowCount][columnCount].isMine){
+            this.boardArray[rowCount][columnCount].isMine = true;
             numOfBombs--;
         }
     }
 }
 
-Board.prototype.createBoard = function (board){
+Board.prototype.createBoard = function (){
     var parentEl = document.getElementById("container");
-    for (let i = 0; i < board.boardHeight; i++){
+    var panel = new Panel(this.numOfMines);
+    panel.createPanel();
+    for (let i = 0; i < this.boardHeight; i++){
         var rowOfCells = [];
-        board.boardArray[i] = rowOfCells;
-        for (let j = 0; j < board.boardWidth; j++){ 
-            board.boardArray[i][j] = new Cell(board, parentEl, i, j);  
-            board.boardArray[i][j].xPos = j;
-            board.boardArray[i][j].yPos = i;
+        this.boardArray[i] = rowOfCells;
+        for (let j = 0; j < this.boardWidth; j++){ 
+            this.boardArray[i][j] = new Cell(this, panel, parentEl, i, j);  
+            this.boardArray[i][j].xPos = j;
+            this.boardArray[i][j].yPos = i;
         }
     }
 }
 
-function createPanel(){
+Panel.prototype.createPanel = function(){
     var parentEl = document.getElementById("container");
     var panelDiv = document.createElement("div");
     panelDiv.setAttribute("id","panelDiv");
@@ -314,22 +346,28 @@ function createPanel(){
     minesDiv.style.color = "red";
     minesDiv.style.fontFamily = "tahoma";
     minesDiv.style.fontSize = "40px";
-    minesDiv.style.width = 0.333*panelDiv.style.width;
-    // var button = document.createElement("button");
-    // button.value = "SMILEY";
-    // var timerDiv = document.createElement("div");
-    // timerDiv.setAttribute("id","timerDiv");
+    // minesDiv.style.width = "33%";
+    var button = document.createElement("button");
+    this.restartButton = button;
+    button.setAttribute("id","restartButton");
+    button.innerHTML= "Restart";
+    var timerDiv = document.createElement("div");
+    timerDiv.setAttribute("id","timerDiv");
+    timerDiv.innerHTML = getThreeDigits(this.elapsedTime);
+    timerDiv.style.color = "red";
+    timerDiv.style.fontFamily = "tahoma";
+    timerDiv.style.fontSize = "40px";
     panelDiv.appendChild(minesDiv);
-    // panelDiv.appendChild(button);
-    // panelDiv.appendChild(timerDiv);
+    panelDiv.appendChild(button);
+    panelDiv.appendChild(timerDiv);
     parentEl.appendChild(panelDiv);
 }
 
 window.onload = function() {
     var board = new Board(maxCols,maxRows,numOfMines); 
     setWidth(board.boardWidth);
-    createPanel();
-    board.createBoard(board);  
+    // createPanel();
+    board.createBoard();  
     board.placeMines(board);
     board.placeNumbers(board);
 };
