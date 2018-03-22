@@ -368,6 +368,6 @@ window.onload = function() {
     setWidth(board.boardWidth);
     // createPanel();
     board.createBoard();  
-    board.placeMines(board);
-    board.placeNumbers(board);
+    board.placeMines();
+    board.placeNumbers();
 };
