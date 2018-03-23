@@ -66,9 +66,6 @@ console.log("this.restartButton: " + this.restartButton);
 
 Panel.prototype.countUp = function(){
 var formattedTime = getThreeDigits(this.elapsedTime);
-console.log("formattedTime: " +  formattedTime);
-console.log("this: " + this);
-console.log("this.elapsedTime: " + this.elapsedTime);
     document.getElementById("timerDiv").innerHTML = formattedTime;
     this.elapsedTime = this.elapsedTime + 1;
     this.stopTimer();
