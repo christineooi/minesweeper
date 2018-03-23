@@ -21,18 +21,6 @@ var images = {
     value8: "value8.png",
 }
 
-
-// var prevTime, stopwatchInterval, elapsedTime = 0;
-
-// function startTimer() {
-//     var tempTime = elapsedTime;
-//     var seconds = tempTime % 60;
-//     tempTime = Math.floor(tempTime / 60);
-//     var time = seconds;
-//     time = getThreeDigits(time);
-//     document.getElementById('timerDiv').innerHTML = time;
-//     var t = setTimeout(startTimer, 500);
-// }
 // add zero in front of numbers < 100
 function getThreeDigits(i) {
     if (i < 10){
@@ -43,30 +31,6 @@ function getThreeDigits(i) {
     }
     return i;
 }
-
-// Upon click of first cell, start timer
-// if (!stopwatchInterval) {
-//     stopwatchInterval = setInterval(function () {
-//       if (!prevTime) {
-//         prevTime = Date.now();
-//       }
-      
-//       elapsedTime += Date.now() - prevTime;
-//       prevTime = Date.now();
-      
-//       updateTime();
-//     }, 50);
-//   }
-
-// When mine is clicked, pause timer
-// if (stopwatchInterval) {
-//     clearInterval(stopwatchInterval);
-//     stopwatchInterval = null;
-//   }
-//   prevTime = null;
-
-// When game is reset, set elapsed time to 0
-// elapsedTime = 0;
 
 // Board constructor
 function Board (width, height, mines) {
@@ -86,31 +50,41 @@ function Panel (minesleft) {
     this.timerID;
     this.elapsedTime = 0;
     this.restartButton;
+console.log("this.restartButton: " + this.restartButton);
     // this.restartButton.addEventListener("click", function(event){
     //     setMessage("Restart button clicked!");
+    //     var board = new Board(maxCols,maxRows,numOfMines); 
+    //     setWidth(board.boardWidth);
+    //     board.createBoard();  
+    //     board.placeMines(board);
+    //     board.placeNumbers(board);
+    //     elapsedTime = 0;
     //     
-
     // });
 
 }
 
 Panel.prototype.countUp = function(){
-    var formattedTime = getThreeDigits(this.elapsedTime);
+var formattedTime = getThreeDigits(this.elapsedTime);
+console.log("formattedTime: " +  formattedTime);
+console.log("this: " + this);
+console.log("this.elapsedTime: " + this.elapsedTime);
     document.getElementById("timerDiv").innerHTML = formattedTime;
     this.elapsedTime = this.elapsedTime + 1;
-    this.timerID = setTimeout(countUp, 1000);
+    this.stopTimer();
+    this.timerID = setTimeout(this.countUp.bind(this), 1000);
 }
 
 Panel.prototype.startTimer = function (){
-    if (!isTimerOn){
-        isTimerOn = true;
-        countUp();
+    if (!this.isTimerOn){
+        this.isTimerOn = true;
+        this.countUp();
     }
 }
 
 Panel.prototype.stopTimer = function (){
-    clearTimeout(timerID);
-    isTimerOn = false;
+    clearTimeout(this.timerID);
+    this.isTimerOn = false;
 }
 
 // Constructor of each square on the board
@@ -127,14 +101,14 @@ function Cell (board, panel, target_div, y, x) {
     target_div.appendChild(this.img);
     this.img.addEventListener("click", (event) => {
         if (!board.isGameOver){
-            // if (!panel.isTimerOn){
-            //     panel.startTimer();
-            // }
+            if (!panel.isTimerOn){
+                panel.startTimer();
+            }
             if (this.isMine && !this.isFlagged){
                 event.target.src = images.explodingBomb;
                 setMessage("Game Over!");
                 showMines(board, this);
-                // panel.stopTimer();
+                panel.stopTimer();
                 board.isGameOver = "true"; 
             } else if(!this.isMine){
                 handleClick(board,this);
@@ -170,6 +144,7 @@ function handleClick(board, cell){
     }
     if (board.nonMineCellsClicked === board.nonMineCells){
         setMessage("You WIN the game!");
+        panel.stopTimer();
         board.isGameOver = true;
     } 
 
@@ -218,35 +193,35 @@ function getNeighbors(board, cell){
     var neighborsArray = [];
     if (cell.yPos === 0){
         if (cell.xPos === 0){  // Upper left corner - 3 neighbors
-            // neighborsArray.push(middleright, bottomright, bottommiddle);
+            // middleright, bottomright, bottommiddle
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos+1],board.boardArray[cell.yPos+1][cell.xPos]);
         } else if (cell.xPos === (board.boardWidth - 1)){ // upper right corner - 3 neighbors
-            // neighborsArray.push(middleleft, bottomleft, bottommiddle);
+            // middleleft, bottomleft, bottommiddle
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos]);
         } else { // first row middle - 5 neighbors
-            // neighborsArray.push(middleleft, bottomleft, bottommiddle, bottomright, middleright);
+            // middleleft, bottomleft, bottommiddle, bottomright, middleright
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
         }
     } else if (cell.yPos === (board.boardHeight - 1)){
         if (cell.xPos === 0){ // bottom left corner - 3 neighbors
-            // neighborsArray.push(topmiddle, topright, middleright);
+            // topmiddle, topright, middleright
             neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
         } else if (cell.xPos === (board.boardWidth - 1)){ //bottom right corner - 3 neighbors
-            // neighborsArray.push(middleleft, topleft, topmiddle);
+            // middleleft, topleft, topmiddle
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos]);
         } else { // last row middle - 5 neighbors
-            // neighborsArray.push(middleleft, topleft, topmiddle, topright, middleright);
+            // middleleft, topleft, topmiddle, topright, middleright
             neighborsArray.push(board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1]);
         }
     } else {
         if (cell.xPos === 0){ // left most column - 5 neighbors
-            // neighborsArray.push(topmiddle, topright, middleright, bottomright, bottommiddle);
+            // topmiddle, topright, middleright, bottomright, bottommiddle
             neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos]);
         } else if (cell.xPos === (board.boardWidth - 1)){ // right most column - 5 neighbors
-            // neighborsArray.push(topmiddle, topleft, middleleft, bottomleft, bottommiddle);
+            // topmiddle, topleft, middleleft, bottomleft, bottommiddle
             neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos]);
         } else { // non-edge cells - 8 neighbors
-            // neighborsArray.push(topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright);
+            // topleft, topmiddle, topright, middleleft, middleright, bottomleft, bottommiddle, bottomright
             neighborsArray.push(board.boardArray[cell.yPos-1][cell.xPos-1], board.boardArray[cell.yPos-1][cell.xPos], board.boardArray[cell.yPos-1][cell.xPos+1], board.boardArray[cell.yPos][cell.xPos-1], board.boardArray[cell.yPos][cell.xPos+1], board.boardArray[cell.yPos+1][cell.xPos-1], board.boardArray[cell.yPos+1][cell.xPos], board.boardArray[cell.yPos+1][cell.xPos+1]);
         }
     }
@@ -346,7 +321,6 @@ Panel.prototype.createPanel = function(){
     minesDiv.style.color = "red";
     minesDiv.style.fontFamily = "tahoma";
     minesDiv.style.fontSize = "40px";
-    // minesDiv.style.width = "33%";
     var button = document.createElement("button");
     this.restartButton = button;
     button.setAttribute("id","restartButton");
