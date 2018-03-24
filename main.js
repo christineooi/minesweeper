@@ -44,23 +44,26 @@ function Board (width, height, mines) {
 }
 
 // Panel constructor
-function Panel (minesleft) {
+function Panel (parentdiv, minesleft) {
     this.numMinesLeft = minesleft; 
     this.isTimerOn = false;
     this.timerID;
     this.elapsedTime = 0;
     this.restartButton;
-console.log("this.restartButton: " + this.restartButton);
-    // this.restartButton.addEventListener("click", function(event){
-    //     setMessage("Restart button clicked!");
-    //     var board = new Board(maxCols,maxRows,numOfMines); 
-    //     setWidth(board.boardWidth);
-    //     board.createBoard();  
-    //     board.placeMines(board);
-    //     board.placeNumbers(board);
-    //     elapsedTime = 0;
-    //     
-    // });
+    this.createPanel();
+    this.restartButton.addEventListener("click", (event) => {
+        //Clear board
+        while(parentdiv.firstChild){
+            parentdiv.removeChild(parentdiv.firstChild);
+        }
+        this.stopTimer();
+        this.elapsedTime = 0;
+        var board = new Board(maxCols,maxRows,numOfMines); 
+        setWidth(board.boardWidth);
+        board.createBoard();  
+        board.placeMines();
+        board.placeNumbers();  
+    });
 
 }
 
@@ -115,13 +118,21 @@ function Cell (board, panel, target_div, y, x) {
     this.img.addEventListener("contextmenu", (event) => {       
         if (!board.isGameOver){         
             if (this.isFlagged){
-                this.isFlagged = false;
-                event.target.src = images.unclicked;
-                document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) + 1)).toString();
+                if (panel.numMinesLeft < board.numOfMines){
+                    this.isFlagged = false;
+                    event.target.src = images.unclicked;
+                    panel.numMinesLeft++;
+                    document.getElementById("minesDiv").innerHTML = getThreeDigits(panel.numMinesLeft);
+                }
+                
             } else {
-                this.isFlagged = true;
-                event.target.src = images.flagged;
-                document.getElementById("minesDiv").innerHTML = getThreeDigits((parseInt(document.getElementById("minesDiv").innerHTML) - 1)).toString();
+                if (panel.numMinesLeft > 0){
+                    this.isFlagged = true;
+                    event.target.src = images.flagged;
+                    panel.numMinesLeft--;
+                    document.getElementById("minesDiv").innerHTML = getThreeDigits(panel.numMinesLeft);
+                }
+                
             }  
         }
         event.preventDefault(); 
@@ -294,8 +305,7 @@ Board.prototype.placeMines = function (){
 
 Board.prototype.createBoard = function (){
     var parentEl = document.getElementById("container");
-    var panel = new Panel(this.numOfMines);
-    panel.createPanel();
+    var panel = new Panel(parentEl, this.numOfMines);
     for (let i = 0; i < this.boardHeight; i++){
         var rowOfCells = [];
         this.boardArray[i] = rowOfCells;
@@ -319,9 +329,9 @@ Panel.prototype.createPanel = function(){
     minesDiv.style.fontFamily = "tahoma";
     minesDiv.style.fontSize = "40px";
     var button = document.createElement("button");
-    this.restartButton = button;
     button.setAttribute("id","restartButton");
     button.innerHTML= "Restart";
+    this.restartButton = button;
     var timerDiv = document.createElement("div");
     timerDiv.setAttribute("id","timerDiv");
     timerDiv.innerHTML = getThreeDigits(this.elapsedTime);
@@ -337,7 +347,6 @@ Panel.prototype.createPanel = function(){
 window.onload = function() {
     var board = new Board(maxCols,maxRows,numOfMines); 
     setWidth(board.boardWidth);
-    // createPanel();
     board.createBoard();  
     board.placeMines();
     board.placeNumbers();
