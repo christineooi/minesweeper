@@ -58,6 +58,7 @@ function Panel (parentdiv, minesleft) {
         }
         this.stopTimer();
         this.elapsedTime = 0;
+        setMessage("");
         var board = new Board(maxCols,maxRows,numOfMines); 
         setWidth(board.boardWidth);
         board.createBoard();  
